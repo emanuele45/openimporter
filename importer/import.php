@@ -7,6 +7,14 @@
  * @version 1.0 Alpha
  */
 
+if (defined('IN_PHAR'))
+{
+	define('WORKINGDIR', dirname(Phar::running(false)));
+}
+else
+{
+	define('WORKINGDIR', __DIR__);
+}
 define('BASEDIR', __DIR__);
 
 require_once(BASEDIR . '/OpenImporter/SplClassLoader.php');

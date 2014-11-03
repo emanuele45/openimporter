@@ -198,14 +198,14 @@ class Importer
 
 	public function populateFormFields($form)
 	{
-		$form_path = isset($this->config->path_to) ? $this->config->path_to : BASEDIR;
+		$form_path = isset($this->config->path_to) ? $this->config->path_to : WORKINGDIR;
 		$form->addOption($this->config->destination->getFormFields($form_path));
 
 		$class = (string) $this->xml->general->className;
 		$settings = new $class();
 
 		if (!isset($this->config->path_from))
-			$this->config->path_from = BASEDIR;
+			$this->config->path_from = WORKINGDIR;
 
 		$path_from = $settings->loadSettings($this->config->path_from, true);
 		if ($path_from !== null)

@@ -320,27 +320,33 @@ class ImportManager
 			$this->config->script = $this->data['import_script'] = $this->validateScript($this->data['import_script']);
 		}
 
-		$sources = glob(BASEDIR . DS . 'Importers' . DS . '*', GLOB_ONLYDIR);
+		$sources = new DirectoryIterator(BASEDIR . DS . 'Importers' . DS);;
 		$count_scripts = 0;
 		$scripts = array();
 		$destination_names = array();
 		foreach ($sources as $source)
 		{
-			$from = basename($source);
+			if ($source->isDot() || $source->isFile())
+				continue;
+
+			$from = $source->getBasename();
 			$scripts[$from] = array();
-			$possible_scripts = glob($source . DS . '*_importer.xml');
+			$possible_scripts = new DirectoryIterator($source->getPathname() . DS);
 
 			// Silence simplexml errors
 			libxml_use_internal_errors(true);
 			foreach ($possible_scripts as $entry)
 			{
+				if ($entry->isDot() || $entry->isDir())
+					continue;
+
 				// If a script is broken simply skip it.
-				if (!$xmlObj = simplexml_load_file($entry, 'SimpleXMLElement', LIBXML_NOCDATA))
+				if (!$xmlObj = simplexml_load_file($entry->getPathname(), 'SimpleXMLElement', LIBXML_NOCDATA))
 				{
 					continue;
 				}
 
-				$scripts[$from][] = array('path' => $from . DS . basename($entry), 'name' => (string) $xmlObj->general->name);
+				$scripts[$from][] = array('path' => $from . DS . $entry->getBasename(), 'name' => (string) $xmlObj->general->name);
 				$destination_names[$from] = (string) $xmlObj->general->version;
 				$count_scripts++;
 			}
