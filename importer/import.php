@@ -21,7 +21,14 @@ use OpenImporter\Core\ImportException;
 use OpenImporter\Core\PasttimeException;
 use OpenImporter\Core\ProgressTracker;
 
-define('BASEDIR', __DIR__);
+if (defined('IN_PHAR'))
+{
+	define('BASEDIR', dirname(Phar::running(false)));
+}
+else
+{
+	define('BASEDIR', __DIR__);
+}
 // A shortcut
 define('DS', DIRECTORY_SEPARATOR);
 
