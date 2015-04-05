@@ -1,0 +1,27 @@
+services:
+    configurator:
+        class:     OpenImporter\Core\Configurator
+    template:
+        class:     OpenImporter\Core\Template
+        arguments: ["@lang"]
+        calls:
+            - [setResponse, ["@http_response"]]
+    lang:
+        class:     OpenImporter\Core\Lang
+        calls:
+            - [loadLang, ["@=service('configurator').lang_dir"]]
+    response_header:
+        class:     OpenImporter\Core\ResponseHeader
+    cookie:
+        class:     OpenImporter\Core\Cookie
+    http_response:
+        class:     OpenImporter\Core\HttpResponse
+        arguments: ["@response_header"]
+    importer:
+        class:     OpenImporter\Core\Importer
+        arguments: ["@configurator", "@lang", "@template"]
+    import_manager:
+        class:     OpenImporter\Core\ImportManager
+        arguments: ["@configurator", "@importer", "@template", "@cookie", "@http_response"]
+        #calls:
+            #- [setMailer, ["@mailer"]]

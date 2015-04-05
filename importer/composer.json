@@ -2,6 +2,9 @@
     "require": {
         "symfony/yaml": "2.6.*",
         "doctrine/dbal": "2.5.*",
+        "symfony/dependency-injection": "2.7.*",
+        "symfony/config": "2.7.*",
+        "symfony/expression-language": "2.7.*",
         "symfony/class-loader": "2.7.*"
     },
     "minimum-stability": "dev",
