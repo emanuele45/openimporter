@@ -9,7 +9,9 @@
 
 namespace OpenImporter\Core;
 
+use OpenImporter\Core\Lang;
 use OpenImporter\Core\DummyLang;
+use OpenImporter\Core\HttpResponse;
 
 /**
  * this is our UI
@@ -20,12 +22,13 @@ class Template
 	protected $response = null;
 	protected $lng = null;
 
-	public function __construct($lng)
+	public function __construct(HttpResponse $response, Lang $lng = null)
 	{
 		if ($lng === null)
 			$lng = new DummyLang();
 
 		$this->lng = $lng;
+		$this->response = $response;
 	}
 
 	/**

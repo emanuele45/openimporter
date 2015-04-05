@@ -9,6 +9,8 @@
 
 namespace OpenImporter\Core;
 
+use OpenImporter\Core\ResponseHeader;
+
 /**
  * This should contain the data used by the template.
  */
@@ -25,7 +27,7 @@ class HttpResponse
 
 	protected $error_params = array();
 
-	public function __construct($headers)
+	public function __construct(ResponseHeader $headers)
 	{
 		$this->headers = $headers;
 	}

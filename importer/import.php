@@ -9,15 +9,9 @@
 
 use Symfony\Component\ClassLoader\Psr4ClassLoader;
 use OpenImporter\Core\Configurator;
-use OpenImporter\Core\Lang;
-use OpenImporter\Core\Cookie;
-use OpenImporter\Core\Template;
-use OpenImporter\Core\Importer;
-use OpenImporter\Core\HttpResponse;
-use OpenImporter\Core\ResponseHeader;
-use OpenImporter\Core\ImportManager;
 use OpenImporter\Core\ImportException;
 use OpenImporter\Core\PasttimeException;
+use Pimple\Container;
 
 define('BASEDIR', __DIR__);
 // A shortcut
@@ -54,32 +48,66 @@ if (@ini_get('session.save_handler') == 'user')
 if (function_exists('get_magic_quotes_gpc') && @get_magic_quotes_gpc() != 0)
 	$_POST = stripslashes_recursive($_POST);
 
-$OI_configurator = new Configurator();
-$OI_configurator->lang_dir = BASEDIR . DIRECTORY_SEPARATOR . 'Languages';
-$OI_configurator->importers_dir = BASEDIR . DIRECTORY_SEPARATOR . 'Importers';
+$container = new Container();
+$OI_configurator = $container['configurator'] = new Configurator();
+$container['configurator']->lang_dir = BASEDIR . DIRECTORY_SEPARATOR . 'Languages';
+$container['configurator']->importers_dir = BASEDIR . DIRECTORY_SEPARATOR . 'Importers';
+$container['template'] = function ($c) {
+	return 'OpenImporter\\Core\\Template';
+};
+$container['template_obj'] = function ($c) {
+	return new $c['template']($c['http_response_obj'], $c['lang_obj']);
+};
+$container['lang'] = function ($c) {
+	return 'OpenImporter\\Core\\Lang';
+};
+$container['lang_obj'] = function ($c) {
+	return new $c['lang']($c['configurator']->lang_dir);
+};
+$container['response_header'] = function ($c) {
+	return 'OpenImporter\\Core\\ResponseHeader';
+};
+$container['response_header_obj'] = function ($c) {
+	return new $c['response_header']();
+};
+$container['cookie'] = function ($c) {
+	return 'OpenImporter\\Core\\Cookie';
+};
+$container['cookie_obj'] = function ($c) {
+	return new $c['cookie']();
+};
+$container['http_response'] = function ($c) {
+	return 'OpenImporter\\Core\\HttpResponse';
+};
+$container['http_response_obj'] = function ($c) {
+	return new $c['http_response']($c['response_header_obj']);
+};
+$container['importer'] = function ($c) {
+	return 'OpenImporter\\Core\\Importer';
+};
+$container['importer_obj'] = function ($c) {
+	return new $c['importer']($c['configurator'], $c['lang_obj'], $c['template_obj']);
+};
+$container['import_manager'] = function ($c) {
+	return 'OpenImporter\\Core\\ImportManager';
+};
+$container['import_manager_obj'] = function ($c) {
+	return new $c['import_manager'](
+		$c['configurator'],
+		$c['importer_obj'],
+		$c['template_obj'],
+		$c['cookie_obj'],
+		$c['http_response_obj']
+	);
+};
 
-try
-{
-	$lng = new Lang();
-	$lng->loadLang($OI_configurator->lang_dir);
-}
-catch (\Exception $e)
-{
-	ImportException::exception_handler($e);
-}
-
-$template = new Template($lng);
+$template = $container['template_obj'];
 
 global $import;
 
 try
 {
-	$importer = new Importer($OI_configurator, $lng, $template);
-	$response = new HttpResponse(new ResponseHeader());
-
-	$template->setResponse($response);
-
-	$import = new ImportManager($OI_configurator, $importer, $template, new Cookie(), $response);
+	$import = $container['import_manager_obj'];
 
 	$import->process();
 }

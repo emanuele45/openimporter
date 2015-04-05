@@ -22,6 +22,11 @@ class Lang
 	protected $_lang = array();
 	protected $_ns = array();
 
+	public function __construct($path)
+	{
+		$this->loadLang($path);
+	}
+
 	/**
 	 * Adds a new variable to lang.
 	 *
