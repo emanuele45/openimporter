@@ -108,22 +108,17 @@ class Template
 		$templates = $this->response->getTemplates();
 		foreach ($templates as $template)
 		{
-			if (file_exists(BASEDIR . '/OpenImporter/Templates/' . $template['name'] . '.html'))
-			{
-				$replaces['template'] = $template['params'];
+			$replaces['template'] = $template['params'];
 
-				$render = $this->twig->loadTemplate($template['name'] . '.html');
-				echo $render->render($replaces);
-			}
-			else
-				call_user_func_array(array($this, $template['name']), $template['params']);
+			$render = $this->twig->loadTemplate($template['name'] . '.html');
+			echo $render->render($replaces);
 		}
 
 		if ($this->response->is_page)
-			{
-				$replaces['template'] = array('step' => $this->config->progress->current_step);
-				$render = $this->twig->loadTemplate('footer.html');
-				echo $render->render($replaces);
-			}
+		{
+			$replaces['template'] = array('step' => $this->config->progress->current_step);
+			$render = $this->twig->loadTemplate('footer.html');
+			echo $render->render($replaces);
+		}
 	}
 }
