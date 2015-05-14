@@ -66,7 +66,13 @@ catch (\Exception $e)
 	ImportException::exceptionHandler($e);
 }
 
-$template = new Template($lng, $OI_configurator);
+$twig = new Twig_Environment(new Twig_Loader_Filesystem(BASEDIR . '/OpenImporter/Templates'));
+$filter = new Twig_SimpleFilter('pregCleanInput', function ($string) {
+	return preg_replace('~[^\w\d]~', '_', $string);
+});
+$twig->addFilter($filter);
+
+$template = new Template($twig, $lng, $OI_configurator);
 $response = new HttpResponse(new ResponseHeader());
 $response->scripturl = $_SERVER['PHP_SELF'];
 

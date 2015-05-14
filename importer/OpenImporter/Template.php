@@ -16,12 +16,15 @@ namespace OpenImporter\Core;
 class Template
 {
 	protected $response = null;
+	protected $replaces = array();
 	protected $lng = null;
+	protected $twig = null;
 	protected $config = null;
 	protected $header_rendered = false;
 
-	public function __construct(Lang $lng, Configurator $config)
+	public function __construct(\Twig_Environment $twig, Lang $lng, Configurator $config)
 	{
+		$this->twig = $twig;
 		$this->lng = $lng;
 		$this->config = $config;
 	}
@@ -61,6 +64,7 @@ class Template
 	public function setResponse($response)
 	{
 		$this->response = $response;
+		$this->initReplaces();
 		$this->response->styles = $this->fetchStyles();
 		$this->response->scripts = $this->fetchScripts();
 	}
@@ -78,20 +82,24 @@ class Template
 		if (file_exists(BASEDIR . '/Assets/scripts.js'))
 		{
 			$file = file_get_contents(BASEDIR . '/Assets/scripts.js');
-			$replaces = array();
-			foreach($this->response->getAll() as $key => $val)
-			{
-				$replaces['{{response->' . $key . '}}'] = $val;
-			}
-			foreach($this->lng->getAll() as $key => $val)
-			{
-				$replaces['{{language->' . $key . '}}'] = $val;
-			}
 
-			return strtr($file, $replaces);
+			return strtr($file, $this->replaces);
 		}
 		else
 			return '';
+	}
+
+	protected function initReplaces()
+	{
+		$this->replaces = array();
+		foreach($this->response->getAll() as $key => $val)
+		{
+			$this->replaces['{{response->' . $key . '}}'] = $val;
+		}
+		foreach($this->lng->getAll() as $key => $val)
+		{
+			$this->replaces['{{language->' . $key . '}}'] = $val;
+		}
 	}
 
 	public function render($response = null)
@@ -118,7 +126,19 @@ class Template
 
 		$templates = $this->response->getTemplates();
 		foreach ($templates as $template)
-			call_user_func_array(array($this, $template['name']), $template['params']);
+		{
+			if (file_exists(BASEDIR . '/OpenImporter/Templates/' . $template['name'] . '.html'))
+			{
+				$replaces['language'] = $this->lng;
+				$replaces['response'] = $this->response;
+				$replaces['template'] = $template['params'];
+
+				$render = $this->twig->loadTemplate($template['name'] . '.html');
+				echo $render->render($replaces);
+			}
+			else
+				call_user_func_array(array($this, $template['name']), $template['params']);
+		}
 
 		if ($this->response->is_page)
 			$this->footer();
@@ -182,76 +202,6 @@ class Template
 			echo '
 			<h2>', $this->lng->get('importing'), '...</h2>
 			<div class="content"><p>';
-	}
-
-	/**
-	 * This is the template part for selecting the importer script.
-	 *
-	 * @param array $scripts
-	 */
-	public function selectScript($scripts, $destination_names)
-	{
-		echo '
-			<h2>', $this->lng->get('to_what'), '</h2>
-			<form id="conversion" class="conversion" action="', $this->response->scripturl, '" method="post">
-				<div class="content">
-					<p><label for="source">', $this->lng->get('locate_source'), '</label></p>
-					<ul id="source">';
-
-		foreach ($destination_names as $key => $value)
-		{
-			$id = preg_replace('~[^\w\d]~', '_', $key);
-			echo '
-						<li>
-							<input class="input_select" data-type="destination" type="radio" value="', $key, '" id="destination_', $id, '" name="destination" />
-							<label for="destination_', $id, '">', $value, '</label>
-						</li>';
-		}
-
-		echo '
-					</ul>
-				</div>';
-
-		echo '
-				<h2>', $this->lng->get('which_software'), '</h2>
-				<div class="content">';
-
-		// We found at least one?
-		if (!empty($scripts))
-		{
-			echo '
-					<p>', $this->lng->get('multiple_files'), '</p>
-					<ul id="destinations">';
-
-			// Let's loop and output all the found scripts.
-			foreach ($scripts as $key => $script)
-			{
-				$id = preg_replace('~[^\w\d]~', '_', $key);
-				echo '
-						<li>
-							<input class="input_select" data-type="source" type="radio" value="', $script['path'], '" id="source_', $id, '" name="source" />
-							<label for="source_', $id, '">', $script['name'], '</label>
-						</li>';
-			}
-
-			echo '
-					</ul>
-				</div>
-				<input class="start_conversion" type="submit" value="', $this->lng->get('start_conversion'), '" />
-			</form>
-			<h2>', $this->lng->get('not_here'), '</h2>
-			<div class="content">
-				<p>', $this->lng->get('check_more'), '</p>
-				<p>', $this->lng->get('having_problems'), '</p>';
-		}
-		else
-			echo '
-				<p>', $this->lng->get('not_found'), '</p>
-				<p>', $this->lng->get('not_found_download'), '</p>
-				<a href="', $this->response->scripturl, '?action=reset">', $this->lng->get('try_again'), '</a>';
-
-		echo '
-			</div>';
 	}
 
 	public function step0(Form $form)

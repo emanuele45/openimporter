@@ -1,0 +1,47 @@
+
+			<h2>{{ language.to_what }}</h2>
+			<form id="conversion" class="conversion" action="{{ response.scripturl }}" method="post">
+				<div class="content">
+					<p><label for="source">{{ language.locate_source }}</label></p>
+					<ul id="source">
+
+		{% for key, value in template.destination_names %}
+						<li>
+							<input class="input_select" data-type="destination" type="radio" value="{{ key }}" id="destination_{{ key|pregCleanInput }}" name="destination" />
+							<label for="destination_{{ key|pregCleanInput }}">{{ value }}</label>
+						</li>
+		{% endfor %}
+
+					</ul>
+				</div>
+
+				<h2>{{ language.which_software }}</h2>
+				<div class="content">
+
+		{# We found at least one? #}
+		{% if template.scripts is empty %}
+				<p>{{ language.not_found }}</p>
+				<p>{{ language.not_found_download }}</p>
+				<a href="{{ response.scripturl }}?action=reset">{{ language.try_again }}</a>
+		{% else %}
+					<p>{{ language.multiple_files }}</p>
+					<ul id="destinations">
+
+			{# Let's loop and output all the found scripts. #}
+			{% for key, value in template.scripts %}
+						<li>
+							<input class="input_select" data-type="source" type="radio" value="{{ value.path }}" id="source_{{ key|pregCleanInput }}" name="source" />
+							<label for="source_{{ key|pregCleanInput }}">{{ value.name }}</label>
+						</li>
+			{% endfor %}
+
+		{% endif %}
+					</ul>
+				</div>
+				<input class="start_conversion" type="submit" value="{{ language.start_conversion }}" />
+			</form>
+			<h2>{{ language.not_here }}</h2>
+			<div class="content">
+				<p>{{ language.check_more|raw }}</p>
+				<p>{{ language.having_problems }}</p>
+			</div>
