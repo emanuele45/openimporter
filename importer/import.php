@@ -75,6 +75,7 @@ $twig->addFilter($filter);
 $template = new Template($twig, $lng, $OI_configurator);
 $response = new HttpResponse(new ResponseHeader());
 $response->scripturl = $_SERVER['PHP_SELF'];
+$response->assets_dir = BASEDIR . '/Assets';
 
 $OI_configurator->progress = new ProgressTracker($response, $OI_configurator, $_REQUEST);
 
