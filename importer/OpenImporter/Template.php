@@ -111,12 +111,19 @@ class Template
 		if ($this->response->no_template)
 			return;
 
+		$replaces['language'] = $this->lng;
+		$replaces['response'] = $this->response;
+
 		if ($this->header_rendered === false)
 		{
 			$this->response->sendHeaders();
 
 			if ($this->response->is_page)
-				$this->header();
+			{
+				$replaces['template'] = array('step' => $this->config->progress->current_step);
+				$render = $this->twig->loadTemplate('header.html');
+				echo $render->render($replaces);
+			}
 
 			$this->header_rendered = true;
 		}
@@ -129,8 +136,6 @@ class Template
 		{
 			if (file_exists(BASEDIR . '/OpenImporter/Templates/' . $template['name'] . '.html'))
 			{
-				$replaces['language'] = $this->lng;
-				$replaces['response'] = $this->response;
 				$replaces['template'] = $template['params'];
 
 				$render = $this->twig->loadTemplate($template['name'] . '.html');
@@ -141,7 +146,11 @@ class Template
 		}
 
 		if ($this->response->is_page)
-			$this->footer();
+			{
+				$replaces['template'] = array('step' => $this->config->progress->current_step);
+				$render = $this->twig->loadTemplate('footer.html');
+				echo $render->render($replaces);
+			}
 	}
 
 	protected function renderErrors()
@@ -156,52 +165,6 @@ class Template
 					$this->error($msg);
 			}
 		}
-	}
-
-	/**
-	 * Show the footer.
-	 */
-	public function footer()
-	{
-		if ($this->response->step == 1 || $this->response->step == 2)
-			echo '
-				</p>
-			</div>';
-		echo '
-		</div>
-	</body>
-</html>';
-	}
-
-	/**
-	 * Show the header.
-	 */
-	public function header()
-	{
-		echo '<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="', $this->lng->get('locale'), '" lang="', $this->lng->get('locale'), '">
-	<head>
-		<meta charset="UTF-8" />
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<title>', $this->response->page_title, '</title>
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-		<script type="text/javascript"><!-- // --><![CDATA[
-', $this->response->scripts, '
-		// ]]></script>
-		<style type="text/css">
-', $this->response->styles, '
-		</style>
-	</head>
-	<body>
-		<div id="header">
-			<h1>', $this->response->page_title, '</h1>
-		</div>
-		<div id="main">';
-
-		if ($this->config->progress->current_step == 1 || $this->config->progress->current_step == 2)
-			echo '
-			<h2>', $this->lng->get('importing'), '...</h2>
-			<div class="content"><p>';
 	}
 
 	public function step0(Form $form)
@@ -224,114 +187,6 @@ class Template
 				<h3>', $this->lng->get('not_this'),'</h3>
 				<p>', $this->lng->get(array('pick_different', $this->response->scripturl . '?action=reset')), '</p>
 			</div>';
-	}
-
-	protected function renderStatuses()
-	{
-		echo '
-		<span class="statuses">';
-
-		foreach ($this->response->getStatuses() as $status)
-			$this->status($status[0], $status[1]);
-
-		echo '
-		</span>';
-	}
-
-	/**
-	 * Display notification with the given status
-	 *
-	 * @param int $status
-	 * @param string $title
-	 */
-	public function status($status, $title)
-	{
-		if (!empty($title))
-			echo '<span class="text">' . $title . '...</span> ';
-
-		if ($status == 1)
-			echo '<span class="success">&#x2714</span>';
-
-		if ($status == 2)
-			echo '<span class="disabled">&#x2714</span> (', $this->lng->get('skipped'),')';
-
-		if ($status == 3)
-			echo '<span class="failure">&#x2718</span> (', $this->lng->get('not_found_skipped'),')';
-
-		if ($status != 0)
-			echo '<br />';
-	}
-
-	/**
-	 * Display last step UI, completion status and allow eventually
-	 * to delete the scripts
-	 *
-	 * @param string $name
-	 * @param bool $writable if the files are writable, the UI will allow deletion
-	 */
-	public function step3($name, $writable)
-	{
-		echo '
-			</div>
-			<h2>', $this->lng->get('complete'), '</h2>
-			<div class="content">
-			<p>', $this->lng->get('congrats'),'</p>';
-
-		if ($writable)
-			echo '
-				<div class="notice">
-					<label for="delete_self"><input type="checkbox" id="delete_self" onclick="doTheDelete()" />', $this->lng->get('check_box'), '</label>
-				</div>';
-
-		echo '
-				<p>', sprintf($this->lng->get('all_imported'), $name), '</p>
-				<p>', $this->lng->get('smooth_transition'), '</p>';
-	}
-
-	/**
-	 * Display the progress bar,
-	 * and inform the user about when the script is paused and re-run.
-	 * @todo the url should be built in the PasttimeException, not here
-	 *
-	 * @param int $bar
-	 * @param int $value
-	 * @param int $max
-	 * @param int $substep
-	 * @param int $start
-	 */
-	public function timeLimit($bar, $value, $max, $substep, $start)
-	{
-		if (!empty($bar))
-			echo '
-			<div id="progressbar">
-				<progress value="', $bar, '" max="100">', $bar, '%</progress>
-			</div>';
-
-		echo '
-		</div>
-		<h2>', $this->lng->get('not_done'),'</h2>
-		<div class="content">
-			<div class="progress"><span>', $this->lng->get('overall_progress'),'</span><progress value="', $value, '" max="', $max, '"></progress></div>
-			<p>', $this->lng->get('importer_paused'), '</p>
-
-			<form action="', $this->response->scripturl, '?step=', $this->response->step, '&amp;substep=', $substep, '&amp;start=', $start, '" method="post" name="autoSubmit">
-				<div class="continue"><input name="b" type="submit" value="', $this->lng->get('continue'),'" /></div>
-			</form>
-
-			<script type="text/javascript"><!-- // --><![CDATA[
-				var countdown = 3;
-				window.onload = doAutoSubmit;
-			// ]]></script>';
-	}
-
-	/**
-	 * ajax response, whether the paths to the source and destination
-	 * software are correctly set.
-	 */
-	public function validate()
-	{
-		echo '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-	<valid>', $this->response->valid ? 'true' : 'false' ,'</valid>';
 	}
 
 	public function renderForm(Form $form)

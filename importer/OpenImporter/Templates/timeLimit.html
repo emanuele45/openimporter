@@ -1,0 +1,31 @@
+{#
+Display the progress bar,
+and inform the user about when the script is paused and re-run.
+@todo the url should be built in the PasttimeException, not here
+
+@param int template.bar
+@param int template.value
+@param int template.max
+@param int template.substep
+@param int template.start
+#}
+		{% if template.bar %}
+			<div id="progressbar">
+				<progress value="{{ template.bar }}" max="100">{{ template.bar }}%</progress>
+			</div>
+		{% endif %}
+
+		</div>
+		<h2>{{ language.not_done }}</h2>
+		<div class="content">
+			<div class="progress"><span>{{ language.overall_progress }}</span><progress value="{{ template.value }}" max="{{ template.max }}"></progress></div>
+			<p>{{ language.importer_paused }}</p>
+
+			<form action="{{ response.scripturl }}?step={{ response.step }}&amp;substep={{ template.substep }}&amp;start={{ template.start }}" method="post" name="autoSubmit">
+				<div class="continue"><input name="b" type="submit" value="{{ language.continue }}" /></div>
+			</form>
+
+			<script type="text/javascript"><!-- // --><![CDATA[
+				var countdown = 3;
+				window.onload = doAutoSubmit;
+			// ]]></script>

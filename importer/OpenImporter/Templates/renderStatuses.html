@@ -1,0 +1,28 @@
+{#
+Display notification with the given status
+
+@param int template.status
+@param string template.title
+#}
+		<span class="statuses">
+
+		{% for status in response.getStatuses %}
+			{% if status.title %}
+				<span class="text">{{ status.title }}...</span>
+			{% endif %}
+
+			{% if status.status == 1 %}
+				<span class="success">&#x2714</span>
+			{% elseif status.status == 2 %}
+				<span class="disabled">&#x2714</span> ({{ language.skipped }})
+			{% elseif status.status == 3 %}
+				<span class="failure">&#x2718</span> ({{ language.not_found_skipped }})
+			{% endif %}
+
+			{% if status.status != 0 %}
+				<br />
+			{% endif %}
+
+		{% endfor %}
+
+		</span>

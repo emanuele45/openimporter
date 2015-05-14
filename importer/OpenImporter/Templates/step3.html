@@ -1,0 +1,20 @@
+{#
+Display last step UI, completion status and allow eventually
+to delete the scripts
+
+@param string template.name
+@param bool template.writable if the files are writable, the UI will allow deletion
+#}
+			</div>
+			<h2>{{ language.complete }}</h2>
+			<div class="content">
+			<p>{{ language.congrats }}</p>
+
+		{% if template.writable %}
+				<div class="notice">
+					<label for="delete_self"><input type="checkbox" id="delete_self" onclick="doTheDelete()" />{{ language.check_box }}</label>
+				</div>>
+		{% endif %}
+
+				<p>{{ language.all_imported|format(name) }}</p>
+				<p>{{ language.smooth_transition }}</p>
