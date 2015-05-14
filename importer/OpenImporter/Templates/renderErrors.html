@@ -1,0 +1,23 @@
+{#
+Display The errors occurred.
+#}
+		{% for msg in response.getErrors %}
+			<div class="error_message">
+				<div class="error_text">
+					{% if msg.trace is not empty %}{{ language.get(['error_message', msg.message]) }}{% else %}{{ msg.message }}{% endif %}
+				</div>
+
+			{% if msg.trace is not empty %}
+				<div class="error_text">{{ language.get(['error_trace', msg.trace]) }}</div>
+			{% endif %}
+
+			{% if msg.line is not empty %}
+				<div class="error_text">{{ language.get(['error_line', msg.line]) }}</div>
+			{% endif %}
+
+			{% if msg.file is not empty %}
+				<div class="error_text">{{ language.get(['error_file', msg.file]) }}</div>
+			{% endif %}
+
+			</div>
+		{% endfor %}

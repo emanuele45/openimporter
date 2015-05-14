@@ -17,6 +17,9 @@
 			<h1>{{ response.page_title }}</h1>
 		</div>
 		<div id="main">
+		{% if msg.trace is not empty %}
+			aaaaaaaaaaaaa
+		{% endif %}
 
 		{% if (response.step == 1) or (response.step == 2) %}
 			<h2>{{ language.importing }}...</h2>

@@ -29,38 +29,6 @@ class Template
 		$this->config = $config;
 	}
 
-	/**
-	 * Display a specific error message.
-	 *
-	 * @param string $error_message
-	 * @param int|bool $trace
-	 * @param int|bool $line
-	 * @param string|bool $file
-	 */
-	public function error($error_message, $trace = false, $line = false, $file = false)
-	{
-		echo '
-			<div class="error_message">
-				<div class="error_text">
-					', !empty($trace) ? $this->lng->get(array('error_message', $error_message)) : $error_message, '
-				</div>';
-
-		if (!empty($trace))
-			echo '
-				<div class="error_text">', $this->lng->get(array('error_trace', $trace)), '</div>';
-
-		if (!empty($line))
-			echo '
-				<div class="error_text">', $this->lng->get(array('error_line', $line)), '</div>';
-
-		if (!empty($file))
-			echo '
-				<div class="error_text">', $this->lng->get(array('error_file', $file)), '</div>';
-
-		echo '
-			</div>';
-	}
-
 	public function setResponse($response)
 	{
 		$this->response = $response;
@@ -130,7 +98,7 @@ class Template
 			$this->header_rendered = true;
 		}
 
-		if ($this->response->is_page)
+		if ($this->response->is_page && $this->response->template_error)
 			$this->renderErrors();
 
 		$templates = $this->response->getTemplates();
@@ -153,20 +121,6 @@ class Template
 				$render = $this->twig->loadTemplate('footer.html');
 				echo $render->render($replaces);
 			}
-	}
-
-	protected function renderErrors()
-	{
-		if ($this->response->template_error)
-		{
-			foreach ($this->response->getErrors() as $msg)
-			{
-				if (is_array($msg))
-					call_user_func_array(array($this, 'error'), $msg);
-				else
-					$this->error($msg);
-			}
-		}
 	}
 
 	public function step0(Form $form)
