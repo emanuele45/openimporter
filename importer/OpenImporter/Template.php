@@ -84,6 +84,15 @@ class Template
 			'response' => $this->response,
 		);
 
+		$this->sendHead($replaces);
+
+		$this->sendBody($replaces);
+
+		$this->sendFooter($replaces);
+	}
+
+	protected function sendHead($replaces)
+	{
 		if ($this->header_rendered === false)
 		{
 			$this->response->sendHeaders();
@@ -97,7 +106,10 @@ class Template
 
 			$this->header_rendered = true;
 		}
+	}
 
+	protected function sendBody($replaces)
+	{
 		if ($this->response->is_page && $this->response->template_error)
 		{
 			$replaces['template'] = array('step' => $this->config->progress->current_step);
@@ -113,7 +125,10 @@ class Template
 			$render = $this->twig->loadTemplate($template['name'] . '.html');
 			echo $render->render($replaces);
 		}
+	}
 
+	protected function sendFooter($replaces)
+	{
 		if ($this->response->is_page)
 		{
 			$replaces['template'] = array('step' => $this->config->progress->current_step);
