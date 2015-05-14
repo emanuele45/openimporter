@@ -51,7 +51,15 @@ class ImportException extends \Exception
 			if (!empty(self::$template))
 				$template = self::$template;
 			else
-				$template = new Template(new DummyLang(), new Configurator());
+			{
+				$twig = new Twig_Environment(new Twig_Loader_Filesystem(BASEDIR . '/OpenImporter/Templates'));
+				$filter = new Twig_SimpleFilter('pregCleanInput', function ($string) {
+					return preg_replace('~[^\w\d]~', '_', $string);
+				});
+				$twig->addFilter($filter);
+
+				$template = new Template($twig, new DummyLang(), new Configurator());
+			}
 		}
 		$message = $exception->getMessage();
 		$trace = $exception->getTrace();

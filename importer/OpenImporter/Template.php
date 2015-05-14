@@ -111,8 +111,10 @@ class Template
 		if ($this->response->no_template)
 			return;
 
-		$replaces['language'] = $this->lng;
-		$replaces['response'] = $this->response;
+		$replaces = array(
+			'language' => $this->lng,
+			'response' => $this->response,
+		);
 
 		if ($this->header_rendered === false)
 		{
