@@ -1,0 +1,58 @@
+
+			<h2>{{ language.before_continue }}</h2>
+			<div class="content">
+				<p>{{ language.get(['before_details', response.source_name, response.destination_name])|raw }}</p>
+			</div>
+
+			<h2>{{ language.where }}</h2>
+			<div class="content">
+				<form action="{{ template.form.action_url }}" method="post">
+					<p>{{ language.locate_destination }}</p>
+					<dl>
+
+		{% for option in template.form.options %}
+			{% if option is empty %}
+					</dl>
+					<div id="toggle_button" class="open">{{ language.advanced_options }}</div>
+					<dl id="advanced_options">
+			{% else %}
+
+				{% if option.type == 'text' %}
+						<dt><label for="{{ option.id }}">{{ option.label }}:</label></dt>
+						<dd>
+							<input type="text" name="{{ option.id }}" id="{{ option.id }}" value="{{ option.value }}" {% if option.validate is not empty %} onblur="validateField('{{ option.id }}')"{% endif %} class="text" />
+							<div id="validate_{{ option.id }}" class="validate">{{ option.correct }}</div>
+						</dd>
+				{% elseif option.type == 'checkbox' %}
+						<dt></dt>
+						<dd>
+							<label for="{{ option.id }}">{{ option.label }}:
+								<input type="checkbox" name="{{ option.id }}" id="{{ option.id }}" value="{{ option.value }}" {{ option.attributes }}/>
+							</label>
+						</dd>
+				{% elseif option.type == 'password' %}
+						<dt><label for="{{ option.id }}">{{ option.label }}:</label></dt>
+						<dd>
+							<input type="password" name="{{ option.id }}" id="{{ option.id }}" class="text" />
+							<div class="passwdcheck">{{ option.correct }}</div>
+						</dd>
+				{% elseif option.type == 'steps' %}
+						<dt><label for="{{ option.id }}">{{ option.label }}:</label></dt>
+						<dd>
+						{% for key, step in option.value %}
+							<label><input type="checkbox" name="do_steps[{{ key }}]" id="do_steps[{{ key }}]" value="{{ step.count }}"{% if step.mandatory %} readonly="readonly" {% endif %} {{ step.checked }} />{{ step.label }}</label><br />
+						{% endfor %}
+						</dd>
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+
+					</dl>
+					<div class="button"><input id="submit_button" name="submit_button" type="submit" value="{{ language.continue }}" class="submit" /></div>
+				</form>
+			</div>
+
+			<div class="content">
+				<h3>{{ language.not_this }}</h3>
+				<p>{{ language.get(['pick_different', response.scripturl ~ '?action=reset'])|raw }}</p>
+			</div>
