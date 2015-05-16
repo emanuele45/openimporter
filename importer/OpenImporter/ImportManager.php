@@ -331,20 +331,24 @@ class ImportManager
 
 		// Silence simplexml errors
 		libxml_use_internal_errors(true);
-		$iterator = new \GlobIterator($this->config->importers_dir . DS . 'sources' . DS . '*_Importer.xml');
+		$iterator = new \DirectoryIterator($this->config->importers_dir . DS . 'sources');
+
 		foreach ($iterator as $entry)
 		{
-			// If a script is broken simply skip it.
-			if (!$xmlObj = simplexml_load_file($entry->getPathname(), 'SimpleXMLElement', LIBXML_NOCDATA))
+			if (substr($entry->getFilename(), -13) == '_Importer.xml')
 			{
-				continue;
-			}
-			$file_name = $entry->getBasename();
+				// If a script is broken simply skip it.
+				if (!$xmlObj = simplexml_load_file($entry->getPathname(), 'SimpleXMLElement', LIBXML_NOCDATA))
+				{
+					continue;
+				}
+				$file_name = $entry->getBasename();
 
-			$scripts[$file_name] = array(
-				'path' => $file_name,
-				'name' => (string) $xmlObj->general->name
-			);
+				$scripts[$file_name] = array(
+					'path' => $file_name,
+					'name' => (string) $xmlObj->general->name
+				);
+			}
 		}
 
 		usort($scripts, function ($v1, $v2) {
@@ -363,16 +367,21 @@ class ImportManager
 	protected function findDestinations()
 	{
 		$destinations = array();
-		$iterator = new \GlobIterator($this->config->importers_dir . DS . 'destinations' . DS . '*', GLOB_ONLYDIR);
+		$iterator = new \DirectoryIterator($this->config->importers_dir . DS . 'destinations');
 		foreach ($iterator as $possible_dir)
 		{
-			$namespace = $possible_dir->getBasename();
-			$class_name = '\\OpenImporter\\Importers\\destinations\\' . $namespace . '\\Importer';
-
-			if (class_exists($class_name))
+			if ($possible_dir->isDot())
+				continue;
+			if ($possible_dir->isDir())
 			{
-				$obj = new $class_name();
-				$destinations[$namespace] = $obj->getName();
+				$namespace = $possible_dir->getBasename();
+				$class_name = '\\OpenImporter\\Importers\\destinations\\' . $namespace . '\\Importer';
+
+				if (class_exists($class_name))
+				{
+					$obj = new $class_name();
+					$destinations[$namespace] = $obj->getName();
+				}
 			}
 		}
 
