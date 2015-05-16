@@ -23,7 +23,7 @@ use OpenImporter\Core\ProgressTracker;
 
 if (defined('IN_PHAR'))
 {
-	define('BASEDIR', dirname(Phar::running(false)));
+	define('BASEDIR', 'phar://openimporter.phar');
 }
 else
 {
