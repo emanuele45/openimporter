@@ -346,7 +346,7 @@ class XmlProcessor
 	protected function detect($table)
 	{
 		$table = $this->fix_params($table);
-		$table = preg_replace('/^`[\w\d]*`\./i', '', $this->fix_params($table));
+		$table = preg_replace('/^`[\w\d\-_]*`\./i', '', $this->fix_params($table));
 
 		$db_name_str = $this->config->source->getDbName();
 
